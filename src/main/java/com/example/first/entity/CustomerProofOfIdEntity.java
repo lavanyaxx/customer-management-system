@@ -3,7 +3,7 @@ import jakarta.persistence.*;
 import java.time.LocalDate;
 @Entity
 @Table(name = "CustomerProofOfId")
-public class CustomerProofOfIdEntity {
+public class CustomerProofOfIdEntity extends AuditableEntity {
     @Id
 @GeneratedValue(strategy = GenerationType.IDENTITY)
 @Column(name = "proofId")
@@ -17,8 +17,7 @@ private String proofOfIdType;
 
 @Column(name = "proofOfIdValue", nullable = false)
 private String proofOfIdValue;
-@Column(name = "effectiveDate", nullable = false)
-private LocalDate effectiveDate;
+
 
 @Column(name = "endDate", nullable = false)
 private LocalDate endDate;
@@ -31,7 +30,7 @@ private LocalDate startDate;
         this.customerIdentifier = customerIdentifier;
         this.proofOfIdType = proofOfIdType;
         this.proofOfIdValue = proofOfIdValue;
-        this.effectiveDate = effectiveDate;
+        this.setEffectiveDate(effectiveDate);
         this.endDate = endDate;
         this.startDate = startDate;
     }
@@ -59,12 +58,7 @@ private LocalDate startDate;
     public void setProofOfIdValue(String proofOfIdValue) {
         this.proofOfIdValue = proofOfIdValue;
     }
-    public LocalDate getEffectiveDate() {
-        return effectiveDate;
-    }
-    public void setEffectiveDate(LocalDate effectiveDate) {
-        this.effectiveDate = effectiveDate;
-    }
+
     public LocalDate getEndDate() {
         return endDate;
     }

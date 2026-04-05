@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import java.time.LocalDate;
 @Entity
 @Table(name = "CustomerDetail")
-public class CustomerDetailEntity {
+public class CustomerDetailEntity extends AuditableEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long customerIdentifier;  

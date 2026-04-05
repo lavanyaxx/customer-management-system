@@ -3,7 +3,7 @@ import jakarta.persistence.*;
 import java.time.LocalDate;
 @Entity
 @Table(name = "CustomerNames")
-public class CustomerNamesEntity {
+public class CustomerNamesEntity extends AuditableEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long customerNameId;
@@ -14,15 +14,14 @@ public class CustomerNamesEntity {
     private String customerNameType;
     @Column(nullable = false)
     private String customerNameValue;
-    @Column(nullable = false)
-    private LocalDate effectiveDate;
+
 
     public CustomerNamesEntity() {}
     public CustomerNamesEntity(CustomerDetailEntity customerIdentifier, String customerNameType, String customerNameValue, LocalDate effectiveDate) {
         this.customerIdentifier = customerIdentifier;
         this.customerNameType = customerNameType;
         this.customerNameValue = customerNameValue;
-        this.effectiveDate = effectiveDate;
+        this.setEffectiveDate(effectiveDate);
     }
     public CustomerDetailEntity getCustomerIdentifier() {
         return customerIdentifier;
@@ -42,12 +41,7 @@ public class CustomerNamesEntity {
     public void setCustomerNameValue(String customerNameValue) {
         this.customerNameValue = customerNameValue;
     }
-    public LocalDate getEffectiveDate() {
-        return effectiveDate;
-    }
-    public void setEffectiveDate(LocalDate effectiveDate) {
-        this.effectiveDate = effectiveDate;
-    }
+
     public Long getCustomerNameId() {
         return customerNameId;
     }

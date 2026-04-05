@@ -29,13 +29,7 @@ import { ApiService } from '../../services/api.service';
           <small class="text-muted">Categories</small>
         </div>
       </div>
-      <div class="col-md-6 col-lg-4">
-        <div class="stat-card">
-          <div class="stat-label">Total Addresses</div>
-          <div class="stat-number">{{ addressCount }}</div>
-          <small class="text-muted">Records</small>
-        </div>
-      </div>
+
     </div>
 
     <div class="row mt-4">
@@ -77,9 +71,9 @@ import { ApiService } from '../../services/api.service';
 export class DashboardComponent implements OnInit {
   customerCount = 0;
   classificationCount = 0;
-  addressCount = 0;
 
-  constructor(private apiService: ApiService) {}
+
+  constructor(private apiService: ApiService) { }
 
   ngOnInit() {
     this.loadStatistics();
@@ -89,12 +83,12 @@ export class DashboardComponent implements OnInit {
   }
 
   loadStatistics() {
-    this.apiService.getCustomerDetails().subscribe({
-      next: (data) => {
-        this.customerCount = data.length;
+    this.apiService.getCustomerCount().subscribe({
+      next: (count) => {
+        this.customerCount = count;
       },
       error: (err) => {
-        console.error('Error loading customers:', err);
+        console.error('Error loading customer count:', err);
         this.customerCount = 0;
       }
     });
@@ -109,14 +103,6 @@ export class DashboardComponent implements OnInit {
       }
     });
 
-    this.apiService.getCustomerAddresses().subscribe({
-      next: (data) => {
-        this.addressCount = data.length;
-      },
-      error: (err) => {
-        console.error('Error loading addresses:', err);
-        this.addressCount = 0;
-      }
-    });
+
   }
 }

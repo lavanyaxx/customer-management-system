@@ -46,8 +46,12 @@ export class ApiService {
   }
 
   // Customer Details APIs
-  getCustomerDetails(): Observable<any[]> {
-    return this.http.get<any[]>(`${API_URL}/customer-detail`);
+  getCustomerDetails(page: number = 0, size: number = 10): Observable<any> {
+    return this.http.get<any>(`${API_URL}/customer-detail?page=${page}&size=${size}`);
+  }
+
+  getCustomerCount(): Observable<number> {
+    return this.http.get<number>(`${API_URL}/customer-detail/count`);
   }
 
   getCustomerDetailById(id: number): Observable<any> {
@@ -112,6 +116,10 @@ export class ApiService {
 
   getCustomerAddressById(id: number): Observable<any> {
     return this.http.get<any>(`${API_URL}/customer-address/${id}`);
+  }
+
+  getAddressesByCustomer(customerId: number): Observable<any[]> {
+    return this.http.get<any[]>(`${API_URL}/customer-address/by-customer/${customerId}`);
   }
 
   createCustomerAddress(data: any): Observable<any> {

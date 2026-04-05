@@ -17,11 +17,6 @@ public class CustomerAddressController {
     @PostMapping
     public ResponseEntity<CustomerAddressDTO> create(
             @Valid @RequestBody CustomerAddressDTO dto) {
-
-        System.out.println(dto.getCustomerAddressType());
-        System.out.println(dto.getCustomerAddressValue());
-        System.out.println(dto.getEffectiveDate());
-
         return ResponseEntity.ok(service.createCustomerAddress(dto));
     }
     @GetMapping("/{id}")
@@ -31,6 +26,10 @@ public class CustomerAddressController {
     @GetMapping
     public ResponseEntity<List<CustomerAddressDTO>> getAll() {
         return ResponseEntity.ok(service.getAllCustomerAddresses());
+    }
+    @GetMapping("/by-customer/{customerId}")
+    public ResponseEntity<List<CustomerAddressDTO>> getByCustomer(@PathVariable Long customerId) {
+        return ResponseEntity.ok(service.getAddressesByCustomerId(customerId));
     }
     @PutMapping("/{id}")
     public ResponseEntity<CustomerAddressDTO> update(
@@ -43,6 +42,4 @@ public class CustomerAddressController {
         service.deleteCustomerAddress(id);
         return ResponseEntity.noContent().build();
     }
-    
-    
-}
+}

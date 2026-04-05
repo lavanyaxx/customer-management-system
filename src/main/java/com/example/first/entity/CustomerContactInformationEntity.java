@@ -4,7 +4,7 @@ import java.time.*;
 
 @Entity
 @Table(name = "CustomerContactInformation")
-public class CustomerContactInformationEntity {
+public class CustomerContactInformationEntity extends AuditableEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long contactInformationId;
@@ -15,8 +15,7 @@ public class CustomerContactInformationEntity {
     private String customerContactType;
     @Column(name = "CustomerContactValue",nullable = false)
     private String customerContactValue;
-    @Column(name = "EffectiveDate",nullable = false)
-    private LocalDate effectiveDate;
+
     @Column(name = "EndDate",nullable = false)
     private LocalDate endDate;
     @Column(name = "StartDate",nullable = false)
@@ -27,7 +26,7 @@ public class CustomerContactInformationEntity {
         this.customerIdentifier = customerIdentifier;
         this.customerContactType = customerContactType;
         this.customerContactValue = customerContactValue;
-        this.effectiveDate = effectiveDate;
+        this.setEffectiveDate(effectiveDate);
         this.endDate = endDate;
         this.startDate = startDate;
     }
@@ -49,12 +48,7 @@ public class CustomerContactInformationEntity {
     public void setCustomerContactValue(String customerContactValue) {
         this.customerContactValue = customerContactValue;
     }
-    public LocalDate getEffectiveDate() {
-        return effectiveDate;
-    }
-    public void setEffectiveDate(LocalDate effectiveDate) {
-        this.effectiveDate = effectiveDate;
-    }
+
     public LocalDate getEndDate() {
         return endDate;
     }

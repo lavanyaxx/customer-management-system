@@ -10,5 +10,6 @@ public interface CustomerAddressService {
     CustomerAddressDTO createCustomerAddress(CustomerAddressDTO customerAddressDTO);
     CustomerAddressDTO updateCustomerAddress(Long id, CustomerAddressDTO customerAddressDTO);
     void deleteCustomerAddress(Long id);
+    List<CustomerAddressDTO> getAddressesByCustomerId(Long customerId);
 
 }

@@ -73,11 +73,18 @@ public class CustomerClassificationTypeServiceImpl implements CustomerClassifica
 
     @Override
     public void deleteCustomerClassificationType(Long id) {
-
-        if (!repository.existsById(id))
-            throw new RuntimeException("Classification not found: " + id);
-
-        repository.deleteById(id);
+        if (!repository.existsById(id)) {
+            throw new org.springframework.web.server.ResponseStatusException(
+                    org.springframework.http.HttpStatus.NOT_FOUND, "Classification not found: " + id);
+        }
+        try {
+            repository.deleteById(id);
+            repository.flush();
+        } catch (Exception e) {
+            throw new org.springframework.web.server.ResponseStatusException(
+                    org.springframework.http.HttpStatus.BAD_REQUEST,
+                    "Cannot delete classification as it is currently in use by one or more customers.");
+        }
     }
 
     private CustomerClassificationTypeDTO toDTO(CustomerClassificationTypeEntity e) {
@@ -86,7 +93,6 @@ public class CustomerClassificationTypeServiceImpl implements CustomerClassifica
                 e.getCustomerClassificationId(),
                 e.getCustomerClassificationType(),
                 e.getCustomerClassificationValue(),
-                e.getEffectiveDate()
-        );
+                e.getEffectiveDate());
     }
 }

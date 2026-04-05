@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import java.time.LocalDate;
 @Entity
 @Table(name = "CustomerClassificationType")
-public class CustomerClassificationTypeEntity {
+public class CustomerClassificationTypeEntity extends AuditableEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -14,8 +14,7 @@ public class CustomerClassificationTypeEntity {
     private String customerClassificationType;
     @Column(nullable = false)
     private String customerClassificationValue;
-    @Column(nullable = false)
-    private LocalDate effectiveDate;
+
 
 
     public CustomerClassificationTypeEntity() {}
@@ -44,11 +43,4 @@ public class CustomerClassificationTypeEntity {
         this.customerClassificationValue = customerClassificationValue;
     }
 
-    public LocalDate getEffectiveDate() {
-        return effectiveDate;
-    }
-
-    public void setEffectiveDate(LocalDate effectiveDate) {
-        this.effectiveDate = effectiveDate;
-    }
 }

@@ -5,7 +5,7 @@ import java.time.LocalDate;
 @Entity
 @Table(name = "CustomerIdentification")
 @Access(AccessType.FIELD)
-public class CustomerIdentificationEntity {
+public class CustomerIdentificationEntity extends AuditableEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long customerIdentificationId;
@@ -16,15 +16,14 @@ public class CustomerIdentificationEntity {
     private String customerIdentificationType;
     @Column(nullable = false)
     private String customerIdentificationItem;
-    @Column(nullable = false)
-    private LocalDate effectiveDate;
+
 
     public CustomerIdentificationEntity() {}
     public CustomerIdentificationEntity(CustomerDetailEntity customerIdentifier, String customerIdentificationType, String customerIdentificationItem, LocalDate effectiveDate) {
         this.customerIdentifier = customerIdentifier;
         this.customerIdentificationType = customerIdentificationType;
         this.customerIdentificationItem = customerIdentificationItem;
-        this.effectiveDate = effectiveDate;
+        this.setEffectiveDate(effectiveDate);
     }
     public CustomerDetailEntity getCustomerIdentifier() {
         return customerIdentifier;
@@ -44,12 +43,7 @@ public class CustomerIdentificationEntity {
     public void setCustomerIdentificationItem(String customerIdentificationItem) {
         this.customerIdentificationItem = customerIdentificationItem;
     }
-    public LocalDate getEffectiveDate() {
-        return effectiveDate;
-    }
-    public void setEffectiveDate(LocalDate effectiveDate) {
-        this.effectiveDate = effectiveDate;
-    }
+
     public Long getCustomerIdentificationId() {
         return customerIdentificationId;
     }

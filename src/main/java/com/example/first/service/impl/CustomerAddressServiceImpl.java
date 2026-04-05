@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -48,7 +49,19 @@ public class CustomerAddressServiceImpl implements CustomerAddressService {
         return repository.findAll()
                 .stream()
                 .map(this::toDTO)
-                .toList();
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<CustomerAddressDTO> getAddressesByCustomerId(Long customerId) {
+        CustomerDetailEntity customer = customerDetailRepository.findById(customerId)
+                .orElseThrow(() -> new RuntimeException("Customer not found with id: " + customerId));
+        return repository.findAll()
+                .stream()
+                .filter(a -> a.getCustomerIdentifier() != null &&
+                             a.getCustomerIdentifier().getCustomerIdentifier().equals(customerId))
+                .map(this::toDTO)
+                .collect(Collectors.toList());
     }
     @Override
     public CustomerAddressDTO updateCustomerAddress(Long id, CustomerAddressDTO customerAddressDTO) {
@@ -74,6 +87,7 @@ public class CustomerAddressServiceImpl implements CustomerAddressService {
     }
     private CustomerAddressDTO toDTO(CustomerAddressEntity entity) {
         CustomerAddressDTO dto = new CustomerAddressDTO();
+        dto.setAddressId(entity.getAddressId());
         dto.setCustomerIdentifier(entity.getCustomerIdentifier().getCustomerIdentifier());
         dto.setCustomerAddressType(entity.getCustomerAddressType());
         dto.setCustomerAddressValue(entity.getCustomerAddressValue());

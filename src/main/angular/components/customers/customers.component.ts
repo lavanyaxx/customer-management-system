@@ -15,7 +15,7 @@ import { ApiService } from '../../services/api.service';
       </div>
     </div>
 
-    <div class="row" *ngIf="!showForm && !showBulkUpload; else displayForm">
+    <div class="row" *ngIf="!showForm && !showBulkUpload && !showAddressSection; else displayForm">
       <div class="col-12">
         <div class="card">
           <div class="card-header d-flex justify-content-between align-items-center">
@@ -23,6 +23,9 @@ import { ApiService } from '../../services/api.service';
             <div>
               <button class="btn btn-sm btn-primary me-2" (click)="toggleForm()">
                 <i class="bi bi-plus"></i> Add Customer
+              </button>
+              <button class="btn btn-sm btn-success me-2" (click)="toggleAddressSection()">
+                <i class="bi bi-geo-alt-fill"></i> Add Address
               </button>
               <button class="btn btn-sm btn-info" (click)="toggleBulkUpload()">
                 <i class="bi bi-upload"></i> Bulk Upload
@@ -76,6 +79,39 @@ import { ApiService } from '../../services/api.service';
                 </tr>
               </tbody>
             </table>
+
+            <!-- Pagination Controls -->
+            <div *ngIf="customers.length > 0" class="d-flex justify-content-between align-items-center mt-3">
+              <div class="text-muted small">
+                Showing {{ currentPage * pageSize + 1 }} to {{ Math.min((currentPage + 1) * pageSize, totalElements) }} of {{ totalElements }} customers
+              </div>
+              <nav aria-label="Customer list pagination">
+                <ul class="pagination pagination-sm mb-0">
+                  <li class="page-item" [class.disabled]="currentPage === 0">
+                    <button class="page-link" (click)="onPageChange(currentPage - 1)" [disabled]="currentPage === 0">
+                      <i class="bi bi-chevron-left"></i> Previous
+                    </button>
+                  </li>
+                  <li class="page-item disabled">
+                    <span class="page-link text-dark">Page {{ currentPage + 1 }} of {{ totalPages }}</span>
+                  </li>
+                  <li class="page-item" [class.disabled]="currentPage >= totalPages - 1">
+                    <button class="page-link" (click)="onPageChange(currentPage + 1)" [disabled]="currentPage >= totalPages - 1">
+                      Next <i class="bi bi-chevron-right"></i>
+                    </button>
+                  </li>
+                </ul>
+              </nav>
+              <div class="d-flex align-items-center">
+                <span class="small text-muted me-2">Rows per page:</span>
+                <select class="form-select form-select-sm" style="width: auto;" [(ngModel)]="pageSize" (change)="onPageSizeChange()">
+                  <option [ngValue]="5">5</option>
+                  <option [ngValue]="10">10</option>
+                  <option [ngValue]="20">20</option>
+                  <option [ngValue]="50">50</option>
+                </select>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -187,16 +223,123 @@ import { ApiService } from '../../services/api.service';
       </div>
     </ng-template>
 
+    <!-- Address Management Section (standalone, selected from all customers) -->
+    <ng-template #addressSection>
+      <div class="row">
+        <div class="col-md-10 offset-md-1">
+          <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+              <span><i class="bi bi-geo-alt-fill"></i> Manage Customer Addresses</span>
+              <button class="btn btn-sm btn-secondary" (click)="toggleAddressSection()">
+                <i class="bi bi-x"></i> Close
+              </button>
+            </div>
+            <div class="card-body">
+              <!-- Customer selector -->
+              <div class="mb-4">
+                <label for="addrCustomerSelect" class="form-label fw-bold">Select Customer *</label>
+                <select class="form-select" id="addrCustomerSelect"
+                  [(ngModel)]="selectedAddressCustomerId"
+                  (ngModelChange)="onAddressCustomerChange($event)"
+                  name="addrCustomerSelect">
+                  <option [ngValue]="null">-- Select a customer --</option>
+                  <option *ngFor="let c of customers" [ngValue]="c.customerIdentifier">
+                    #{{ c.customerIdentifier }} – {{ c.customerFullName }}
+                  </option>
+                </select>
+              </div>
+
+              <!-- Address list for selected customer -->
+              <div *ngIf="selectedAddressCustomerId">
+                <div *ngIf="addressMessage" class="alert alert-success fade-in mb-3">
+                  <i class="bi bi-check-circle"></i> {{ addressMessage }}
+                </div>
+                <div *ngIf="addressErrorMessage" class="alert alert-danger fade-in mb-3">
+                  <i class="bi bi-exclamation-circle"></i> {{ addressErrorMessage }}
+                </div>
+
+                <!-- Add new address form -->
+                <div *ngIf="showAddressForm" class="mb-4 p-3 bg-light rounded border">
+                  <h6><i class="bi bi-plus-circle"></i> New Address</h6>
+                  <form (ngSubmit)="submitAddress()" *ngIf="addressFormData">
+                    <div class="mb-3">
+                      <label class="form-label">Address Type *</label>
+                      <select class="form-select" [(ngModel)]="addressFormData.customerAddressType" name="addressType" required>
+                        <option value="">-- Select Type --</option>
+                        <option value="HOME">Home</option>
+                        <option value="WORK">Work</option>
+                        <option value="BILLING">Billing</option>
+                        <option value="SHIPPING">Shipping</option>
+                        <option value="OTHER">Other</option>
+                      </select>
+                    </div>
+                    <div class="mb-3">
+                      <label class="form-label">Address *</label>
+                      <textarea class="form-control" [(ngModel)]="addressFormData.customerAddressValue" name="addressValue" rows="3" placeholder="Enter full address" required></textarea>
+                    </div>
+                    <div class="mb-3">
+                      <label class="form-label">Effective Date *</label>
+                      <input type="date" [max]="today" class="form-control" [(ngModel)]="addressFormData.effectiveDate" name="addrEffectiveDate" required>
+                    </div>
+                    <div class="d-flex gap-2">
+                      <button type="submit" class="btn btn-success btn-sm" [disabled]="isSubmittingAddress">
+                        <span *ngIf="!isSubmittingAddress"><i class="bi bi-check"></i> Save Address</span>
+                        <span *ngIf="isSubmittingAddress"><span class="spinner-border spinner-border-sm me-1"></span>Saving...</span>
+                      </button>
+                      <button type="button" class="btn btn-secondary btn-sm" (click)="cancelAddressForm()">Cancel</button>
+                    </div>
+                  </form>
+                </div>
+
+                <!-- Add address button -->
+                <div class="d-flex justify-content-between align-items-center mb-3" *ngIf="!showAddressForm">
+                  <h6 class="mb-0">Addresses for selected customer</h6>
+                  <button class="btn btn-sm btn-primary" (click)="openAddressForm()">
+                    <i class="bi bi-plus"></i> Add New Address
+                  </button>
+                </div>
+
+                <!-- Addresses list -->
+                <div *ngIf="customerAddresses.length === 0 && !showAddressForm" class="text-center py-4 text-muted">
+                  <i class="bi bi-info-circle"></i> No addresses found for this customer
+                </div>
+                <div *ngIf="customerAddresses.length > 0" class="list-group">
+                  <div *ngFor="let addr of customerAddresses" class="list-group-item">
+                    <div class="d-flex justify-content-between align-items-start">
+                      <div>
+                        <span class="badge bg-info me-2">{{ addr.customerAddressType }}</span>
+                        <small class="text-muted">Effective: {{ addr.effectiveDate }}</small>
+                        <p class="mb-0 mt-1">{{ addr.customerAddressValue }}</p>
+                      </div>
+                      <button class="btn btn-sm btn-danger" (click)="deleteAddress(addr.addressId)">
+                        <i class="bi bi-trash"></i>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </ng-template>
+
     <ng-template #displayForm>
-      <ng-container *ngIf="showForm; else bulkUploadSection">
+      <ng-container *ngIf="showForm; else checkBulkOrAddress">
         <ng-container *ngTemplateOutlet="formSection"></ng-container>
+      </ng-container>
+    </ng-template>
+    <ng-template #checkBulkOrAddress>
+      <ng-container *ngIf="showBulkUpload; else addressSection">
+        <ng-container *ngTemplateOutlet="bulkUploadSection"></ng-container>
       </ng-container>
     </ng-template>
 
     <ng-template #formSection>
       <div class="row">
-        <div class="col-md-8 offset-md-2">
-          <div class="card">
+        <div class="col-md-10 offset-md-1">
+          <!-- Customer Form Card -->
+          <div class="card mb-4">
             <div class="card-header d-flex justify-content-between align-items-center">
               <span *ngIf="!editingId"><i class="bi bi-person-plus"></i> Add New Customer</span>
               <span *ngIf="editingId"><i class="bi bi-pencil"></i> Edit Customer</span>
@@ -235,6 +378,7 @@ import { ApiService } from '../../services/api.service';
                   <label for="customerDateOfBirth" class="form-label">Date of Birth *</label>
                   <input
                     type="date"
+                    [max]="today"
                     class="form-control"
                     id="customerDateOfBirth"
                     [(ngModel)]="formData.customerDateOfBirth"
@@ -298,6 +442,8 @@ import { ApiService } from '../../services/api.service';
               </form>
             </div>
           </div>
+
+
         </div>
       </div>
     </ng-template>
@@ -315,8 +461,27 @@ export class CustomersComponent implements OnInit {
   showBulkUpload = false;
   csvData: any[] = [];
   uploadResults: any = null;
+  Math = Math; // To use in template
+  today: string = new Date().toISOString().split('T')[0];
 
-  constructor(private apiService: ApiService) {}
+  // Pagination properties
+  currentPage = 0;
+  pageSize = 10;
+  totalElements = 0;
+  totalPages = 0;
+
+  // Address management properties
+  customerAddresses: any[] = [];
+  addressFormData: any = null;
+  showAddressForm = false;
+  addressMessage = '';
+  addressErrorMessage = '';
+  isSubmittingAddress = false;
+  editingAddressId: number | null = null;
+  showAddressSection = false;
+  selectedAddressCustomerId: number | null = null;
+
+  constructor(private apiService: ApiService) { }
 
   ngOnInit() {
     this.loadCustomers();
@@ -326,9 +491,11 @@ export class CustomersComponent implements OnInit {
   }
 
   loadCustomers() {
-    this.apiService.getCustomerDetails().subscribe({
-      next: (data) => {
-        this.customers = data;
+    this.apiService.getCustomerDetails(this.currentPage, this.pageSize).subscribe({
+      next: (response) => {
+        this.customers = response.content || [];
+        this.totalElements = response.totalElements || 0;
+        this.totalPages = response.totalPages || 0;
         this.clearMessages();
       },
       error: (err) => {
@@ -336,6 +503,18 @@ export class CustomersComponent implements OnInit {
         console.error(err);
       }
     });
+  }
+
+  onPageChange(page: number) {
+    if (page >= 0 && page < this.totalPages) {
+      this.currentPage = page;
+      this.loadCustomers();
+    }
+  }
+
+  onPageSizeChange() {
+    this.currentPage = 0;
+    this.loadCustomers();
   }
 
   toggleForm() {
@@ -351,11 +530,16 @@ export class CustomersComponent implements OnInit {
           customerCountryOfOrigin: '',
           customerType: 1
         };
+        this.customerAddresses = [];
+        this.showAddressForm = false;
       }
       this.clearMessages();
     } else {
       this.editingId = null;
       this.formData = null;
+      this.customerAddresses = [];
+      this.showAddressForm = false;
+      this.clearAddressMessages();
     }
   }
 
@@ -370,7 +554,7 @@ export class CustomersComponent implements OnInit {
     }
 
     this.isSubmitting = true;
-    
+
     if (this.editingId) {
       // Update existing customer
       this.apiService.updateCustomerDetail(this.editingId, this.formData).subscribe({
@@ -379,6 +563,8 @@ export class CustomersComponent implements OnInit {
           this.showForm = false;
           this.editingId = null;
           this.formData = null;
+          this.customerAddresses = [];
+          this.showAddressForm = false;
           this.isSubmitting = false;
           this.loadCustomers();
         },
@@ -411,7 +597,11 @@ export class CustomersComponent implements OnInit {
     this.editingId = customer.customerIdentifier;
     this.formData = { ...customer };
     this.showForm = true;
+    this.showAddressForm = false;
+    this.customerAddresses = [];
+    this.editingAddressId = null;
     this.clearMessages();
+    this.loadCustomerAddresses();
   }
 
   delete(id: number) {
@@ -429,9 +619,153 @@ export class CustomersComponent implements OnInit {
     }
   }
 
+  // Address Management Methods
+  loadCustomerAddresses() {
+    const id = this.selectedAddressCustomerId || this.editingId;
+    if (!id) return;
+
+    this.apiService.getAddressesByCustomer(id).subscribe({
+      next: (data) => {
+        this.customerAddresses = data || [];
+        this.clearAddressMessages();
+      },
+      error: (err) => {
+        this.addressErrorMessage = 'Failed to load addresses';
+        console.error(err);
+        this.customerAddresses = [];
+      }
+    });
+  }
+
+  toggleAddressSection() {
+    this.showAddressSection = !this.showAddressSection;
+    if (!this.showAddressSection) {
+      this.selectedAddressCustomerId = null;
+      this.customerAddresses = [];
+      this.showAddressForm = false;
+      this.addressFormData = null;
+      this.clearAddressMessages();
+    } else {
+      this.clearAddressMessages();
+    }
+  }
+
+  onAddressCustomerChange(customerId: number) {
+    this.selectedAddressCustomerId = customerId;
+    this.customerAddresses = [];
+    this.showAddressForm = false;
+    this.addressFormData = null;
+    this.clearAddressMessages();
+    if (customerId) {
+      this.loadCustomerAddresses();
+    }
+  }
+
+  openAddressForm() {
+    this.showAddressForm = true;
+    this.addressFormData = {
+      customerAddressType: '',
+      customerAddressValue: '',
+      effectiveDate: new Date().toISOString().split('T')[0]
+    };
+    this.clearAddressMessages();
+  }
+
+  cancelAddressForm() {
+    this.showAddressForm = false;
+    this.addressFormData = null;
+    this.clearAddressMessages();
+  }
+
+  toggleAddressForm() {
+    this.showAddressForm = !this.showAddressForm;
+    if (this.showAddressForm) {
+      this.addressFormData = {
+        customerAddressType: '',
+        customerAddressValue: '',
+        effectiveDate: new Date().toISOString().split('T')[0]
+      };
+      this.editingAddressId = null;
+      this.clearAddressMessages();
+    } else {
+      this.addressFormData = null;
+      this.editingAddressId = null;
+    }
+  }
+
+  submitAddress() {
+    const customerId = this.selectedAddressCustomerId || this.editingId;
+    if (!customerId) {
+      this.addressErrorMessage = 'Please select a customer first';
+      return;
+    }
+
+    if (!this.addressFormData.customerAddressType) {
+      this.addressErrorMessage = 'Please select an address type';
+      return;
+    }
+
+    if (!this.addressFormData.customerAddressValue?.trim()) {
+      this.addressErrorMessage = 'Please enter an address';
+      return;
+    }
+
+    this.isSubmittingAddress = true;
+    const addressData = {
+      ...this.addressFormData,
+      customerIdentifier: customerId
+    };
+
+    this.apiService.createCustomerAddress(addressData).subscribe({
+      next: () => {
+        this.addressMessage = 'Address added successfully!';
+        this.showAddressForm = false;
+        this.addressFormData = null;
+        this.isSubmittingAddress = false;
+        this.loadCustomerAddresses();
+      },
+      error: (err) => {
+        this.addressErrorMessage = 'Failed to add address: ' + (err.error?.message || err.message);
+        this.isSubmittingAddress = false;
+        console.error(err);
+      }
+    });
+  }
+
+  editAddress(address: any) {
+    this.editingAddressId = address.addressId;
+    this.addressFormData = {
+      customerAddressType: address.customerAddressType,
+      customerAddressValue: address.customerAddressValue,
+      effectiveDate: address.effectiveDate
+    };
+    this.showAddressForm = true;
+    this.clearAddressMessages();
+  }
+
+  deleteAddress(addressId: number) {
+    if (confirm('Are you sure you want to delete this address?')) {
+      this.apiService.deleteCustomerAddress(addressId).subscribe({
+        next: () => {
+          this.addressMessage = 'Address deleted successfully!';
+          this.loadCustomerAddresses();
+        },
+        error: (err) => {
+          this.addressErrorMessage = 'Failed to delete address: ' + (err.error?.message || err.message);
+          console.error(err);
+        }
+      });
+    }
+  }
+
   clearMessages() {
     this.successMessage = '';
     this.errorMessage = '';
+  }
+
+  clearAddressMessages() {
+    this.addressMessage = '';
+    this.addressErrorMessage = '';
   }
 
   toggleBulkUpload() {
@@ -470,9 +804,9 @@ export class CustomersComponent implements OnInit {
     }
 
     const headers = lines[0].split(',').map(h => h.trim());
-    const expectedHeaders = ['customerFullName', 'customerGender', 'customerType', 
-                            'customerDateOfBirth', 'customerPreferredLanguage', 
-                            'customerStatus', 'customerCountryOfOrigin'];
+    const expectedHeaders = ['customerFullName', 'customerGender', 'customerType',
+      'customerDateOfBirth', 'customerPreferredLanguage',
+      'customerStatus', 'customerCountryOfOrigin'];
 
     // Validate headers (allow any order)
     const hasAllHeaders = expectedHeaders.every(h => headers.includes(h));
@@ -486,7 +820,7 @@ export class CustomersComponent implements OnInit {
     for (let i = 1; i < lines.length; i++) {
       const values = lines[i].split(',').map(v => v.trim());
       const row: any = {};
-      
+
       headers.forEach((header, index) => {
         row[header] = values[index] || '';
       });

@@ -1,5 +1,7 @@
 package com.example.first.controller;
+
 import com.example.first.dto.CustomerDetailDTO;
+import com.example.first.dto.PageResponseDTO;
 import com.example.first.dto.BulkUploadResponseDTO;
 import com.example.first.service.CustomerDetailService;
 import jakarta.validation.Valid;
@@ -17,6 +19,11 @@ public class CustomerDetailController {
         this.service = service;
     }
 
+    @GetMapping("/count")
+    public ResponseEntity<Long> getCount() {
+        return ResponseEntity.ok(service.getCustomerCount());
+    }
+
     @PostMapping
     public ResponseEntity<CustomerDetailDTO> create(
             @Valid @RequestBody CustomerDetailDTO dto) {
@@ -31,9 +38,11 @@ public class CustomerDetailController {
     }
 
     @GetMapping
-    public ResponseEntity<List<CustomerDetailDTO>> getAll() {
+    public ResponseEntity<PageResponseDTO<CustomerDetailDTO>> getAll(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
 
-        return ResponseEntity.ok(service.getAllCustomerDetails());
+        return ResponseEntity.ok(service.getAllCustomerDetails(page, size));
     }
 
     @PutMapping("/{id}")

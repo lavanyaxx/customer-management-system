@@ -5,7 +5,7 @@ import java.time.LocalDate;
 
 @Entity
 @Table(name = "CustomerAddress")
-public class CustomerAddressEntity {
+public class CustomerAddressEntity extends AuditableEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -21,8 +21,7 @@ public class CustomerAddressEntity {
     @Column(name = "customerAddressValue")
     private String customerAddressValue;
 
-    @Column(name = "effectiveDate")
-    private LocalDate effectiveDate;
+
 
     public CustomerAddressEntity() {
     }
@@ -51,11 +50,4 @@ public class CustomerAddressEntity {
     public void setCustomerAddressValue(String customerAddressValue) {
         this.customerAddressValue = customerAddressValue;
     }
-    public LocalDate getEffectiveDate() {
-        return effectiveDate;
-    }
-    public void setEffectiveDate(LocalDate effectiveDate) {
-        this.effectiveDate = effectiveDate;
-    }
-    
 }

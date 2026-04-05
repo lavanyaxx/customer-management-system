@@ -145,7 +145,7 @@ export class ClassificationsComponent implements OnInit {
   errorMessage = '';
   isSubmitting = false;
 
-  constructor(private apiService: ApiService) {}
+  constructor(private apiService: ApiService) { }
 
   ngOnInit() {
     this.loadClassifications();
@@ -233,13 +233,19 @@ export class ClassificationsComponent implements OnInit {
   }
 
   edit(classification: any) {
+    console.log('Editing classification:', classification);
     this.editingId = classification.classificationId;
     this.formData = { ...classification };
     this.showForm = true;
     this.clearMessages();
   }
 
-  delete(id: number) {
+  delete(id: number | undefined) {
+    if (!id) {
+      console.error('Delete called without ID');
+      return;
+    }
+    console.log('Attempting to delete classification with ID:', id);
     if (confirm('Are you sure you want to delete this classification?')) {
       this.apiService.deleteClassification(id).subscribe({
         next: () => {
@@ -247,8 +253,8 @@ export class ClassificationsComponent implements OnInit {
           this.loadClassifications();
         },
         error: (err) => {
-          this.errorMessage = 'Failed to delete classification: ' + (err.error?.message || err.message);
-          console.error(err);
+          this.errorMessage = 'Failed to delete: ' + (err.error?.message || 'This classification is currently in use by active customers and cannot be deleted.');
+          console.error('Delete error:', err);
         }
       });
     }
