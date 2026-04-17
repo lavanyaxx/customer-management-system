@@ -16,6 +16,7 @@ public class CustomerDetailEntity extends AuditableEntity {
     
     @JoinColumn(name = "CustomerType", nullable = false)
     @ManyToOne
+    @org.hibernate.annotations.NotFound(action = org.hibernate.annotations.NotFoundAction.IGNORE)
     private CustomerClassificationTypeEntity customerType;
     @Column(nullable = false)
     private LocalDate customerDateOfBirth;

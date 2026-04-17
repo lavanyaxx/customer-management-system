@@ -148,8 +148,9 @@ public class CustomerDetailServiceImpl implements CustomerDetailService {
         dto.setCustomerFullName(entity.getCustomerFullName());
         dto.setCustomerGender(entity.getCustomerGender());
 
-        dto.setCustomerType(
-                entity.getCustomerType().getCustomerClassificationId());
+        if (entity.getCustomerType() != null) {
+            dto.setCustomerType(entity.getCustomerType().getCustomerClassificationId());
+        }
 
         dto.setCustomerDateOfBirth(entity.getCustomerDateOfBirth());
         dto.setCustomerPreferredLanguage(entity.getCustomerPreferredLanguage());

@@ -1006,3 +1006,28 @@ sh mvnw clean install -DskipTests
 - [H2 Database](https://www.h2database.com/)
 - [RESTful API Best Practices](https://restfulapi.net/)
 
+## Python Analytics & Reports (Labs 10 & 11)
+
+The application includes supplemental Python scripts to generate offline CSV reports and visual analytic charts by querying the local database natively, utilizing `pandas` and `matplotlib`. All scripts and generated assets exist inside the `python_analytics/` directory.
+
+### Report Generation (Lab 10)
+**Script:** `python_analytics/lab10_reports.py`
+Connects directly to the backend database to generate local CSV aggregations encompassing:
+1. `language_age_group_report.csv` - Classifies customers globally by preferred language and grouped by granular age brackets.
+2. `gender_ratio_report.csv` - Outputs the ratio and explicit aggregated counts of male vs female customers.
+3. `country_language_distribution.csv` - Segments and calculates global clusters of languages preferred filtered by customer country of origin.
+
+### Data Visualisation (Lab 11)
+**Script:** `python_analytics/lab11_visualisation.py`
+Generates high-resolution `.png` file visualisations measuring metric trends:
+1. `address_types_bar_chart.png` - Standard bar chart determining frequency counts of different registered address types.
+2. `active_vs_expired_records.png` - Visual differentiation tracking currently active accounts against expired status limits based on `end_date` restrictions.
+3. `preferred_languages_horizontal_bar.png` - Legible Horizontal Bar Chart establishing ranking priorities of explicitly stated customer languages.
+
+**How to run locally:**
+```bash
+cd python_analytics
+pip3 install mysql-connector-python pandas matplotlib
+python3 lab10_reports.py
+python3 lab11_visualisation.py
+```
